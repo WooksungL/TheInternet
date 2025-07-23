@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Superimposing Cities</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <video autoplay muted loop playsinline class="hero-video">
+      <source src="assets/videos/default.mp4" type="video/mp4" />
+    </video>
+    <div class="hero-title">
+      <h1>Superimposing the Contemporary Global Context</h1>
+    </div>
+  </section>
+
+  <!-- City/Style Dropdown Selector -->
+  <section class="selector">
+    <div class="dropdowns">
+      <label for="city-select">City Selected</label>
+      <select id="city-select">
+        <option value="seoul">Seoul</option>
+        <option value="tokyo">Tokyo</option>
+        <option value="london">London</option>
+        <option value="paris">Paris</option>
+      </select>
+
+      <label for="style-select">Style Selected</label>
+      <select id="style-select">
+        <option value="1">Version 1</option>
+        <option value="2">Version 2</option>
+        <option value="3">Version 3</option>
+        <option value="4">Version 4</option>
+      </select>
+    </div>
+
+    <div class="video-container">
+      <video id="city-style-video" controls autoplay muted loop></video>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>Share your city remix with the world — tag us on Instagram and join the movement.</p>
+    <div class="footer-boxes">
+      <div class="box"></div>
+      <div class="box"></div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
