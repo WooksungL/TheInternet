@@ -5,7 +5,10 @@ const videoEl = document.getElementById('city-style-video');
 function updateVideo() {
   const city = citySelect.value;
   const style = styleSelect.value;
-  const filePath = `assets/videos/${city}_${style}.mp4`;
+
+  // ✅ GitHub Pages에서 재생 가능하도록 전체 경로 지정
+  const baseURL = "https://wooksungl.github.io/TheInternet/images";
+  const filePath = `${baseURL}/${city}_${style}.mp4`;
 
   videoEl.src = filePath;
   videoEl.load();
@@ -15,5 +18,4 @@ function updateVideo() {
 citySelect.addEventListener('change', updateVideo);
 styleSelect.addEventListener('change', updateVideo);
 
-// 초기 실행
-updateVideo();
+updateVideo(); // 초기 실행
