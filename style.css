@@ -12,7 +12,7 @@ body {
 
 .hero {
   position: relative;
-  height: 70vh;
+  height: 100vh;
   overflow: hidden;
   background: black;
 }
@@ -27,7 +27,7 @@ body {
 .description {
   text-align: center;
   padding: 2em;
-  font-size: 1rem;
+  font-size: 2rem;
   color: black; /* 또는 white, depending on background */
   background-color: white; /* 보이게 하려면 배경 대비 확보 */
   z-index: 10;
@@ -54,6 +54,23 @@ body {
   max-width: 800px;
   border-radius: 10px;
   margin-bottom: 20px;
+}
+
+.video-descriptions {
+  margin-top: 30px;        /* 전체 블록과 위 간격 */
+  padding: 0 120px;         /* 좌우 여백 */
+}
+
+.video-descriptions p {
+  margin: 30px 0;          /* 위아래 간격 늘리기 */
+  line-height: 1;        /* 줄 간격 조정 */
+  text-align: left;        /* 전체 단락 왼쪽 정렬 */
+}
+
+.video-descriptions strong {
+  display: block;          /* strong 태그를 한 줄 전체로 */
+  margin-bottom: 2px;      /* strong 아래 간격 */
+  text-align: left;        /* 굵은 제목 왼쪽 정렬 */
 }
 
 .selector {
