@@ -24,6 +24,16 @@ body {
   opacity: 1;
 }
 
+.description {
+  text-align: center;
+  padding: 2em;
+  font-size: 1rem;
+  color: black; /* 또는 white, depending on background */
+  background-color: white; /* 보이게 하려면 배경 대비 확보 */
+  z-index: 10;
+  position: relative;
+}
+
 .selector {
   padding: 40px 20px;
   text-align: center;
