@@ -35,21 +35,25 @@ body {
 }
 
 .video-selected {
-  padding: 40px 20px;
   text-align: center;
+  padding: 50px 20px;
 }
 
-.video-row {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
+#theme-select {
+  font-size: 16px;
+  padding: 5px 10px;
+  margin-top: 10px;
+}
+
+.video-display {
   margin-top: 20px;
 }
 
-.small-video {
-  width: 30%;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+#theme-video {
+  width: 80%;
+  max-width: 800px;
+  border-radius: 10px;
+  margin-bottom: 20px;
 }
 
 .selector {

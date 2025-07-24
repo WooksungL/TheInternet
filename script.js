@@ -1,21 +1,21 @@
-const citySelect = document.getElementById('city-select');
-const styleSelect = document.getElementById('style-select');
-const videoEl = document.getElementById('city-style-video');
+const themeSelect = document.getElementById('theme-select');
+const themeVideo = document.getElementById('theme-video');
 
-function updateVideo() {
-  const city = citySelect.value;
-  const style = styleSelect.value;
+const themeData = {
+  conception: {
+    video: "videos/conception.mp4"
+  },
+  representation: {
+    video: "videos/representation.mp4"
+  },
+  construction: {
+    video: "videos/construction.mp4"
+  }
+};
 
-  // ✅ GitHub Pages에서 재생 가능하도록 전체 경로 지정
-  const baseURL = "https://wooksungl.github.io/TheInternet/images";
-  const filePath = `${baseURL}/${city}_${style}.mp4`;
-
-  videoEl.src = filePath;
-  videoEl.load();
-  videoEl.play();
-}
-
-citySelect.addEventListener('change', updateVideo);
-styleSelect.addEventListener('change', updateVideo);
-
-updateVideo(); // 초기 실행
+themeSelect.addEventListener('change', () => {
+  const selected = themeSelect.value;
+  themeVideo.src = themeData[selected].video;
+  themeVideo.load();
+  themeVideo.play();
+});
