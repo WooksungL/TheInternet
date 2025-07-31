@@ -1,3 +1,4 @@
+/* Reset & Global Styles */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -10,9 +11,10 @@ body {
   color: #111;
 }
 
+/* Hero Section */
 .hero {
   position: relative;
-  height: 100vh;
+  height: 70vh;
   overflow: hidden;
   background: black;
 }
@@ -24,16 +26,18 @@ body {
   opacity: 1;
 }
 
+/* Description */
 .description {
   text-align: center;
   padding: 2em;
-  font-size: 2rem;
-  color: black; /* 또는 white, depending on background */
-  background-color: white; /* 보이게 하려면 배경 대비 확보 */
+  font-size: 1rem;
+  background-color: white;
+  color: black;
   z-index: 10;
   position: relative;
 }
 
+/* Video Selected Section */
 .video-selected {
   text-align: center;
   padding: 50px 20px;
@@ -41,38 +45,64 @@ body {
 
 #theme-select {
   font-size: 16px;
-  padding: 5px 10px;
-  margin-top: 10px;
+  padding: 6px 12px;
+  margin: 10px 0 20px;
 }
 
-.video-display {
-  margin-top: 20px;
+/* Video with Side Images (Image Left, Video Right) */
+.video-display-with-images {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+  margin-top: 30px;
+  flex-wrap: wrap;
 }
 
-#theme-video {
-  width: 80%;
-  max-width: 800px;
+/* Image Column */
+.side-images {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 480px;
+}
+
+.side-images img {
+  width: 300px;
+  height: 230px; /* Total 230 * 2 + gap = 480px */
+  object-fit: cover;
   border-radius: 10px;
-  margin-bottom: 20px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
+/* Video Wrapper */
+.video-wrapper video {
+  width: 640px;
+  height: 480px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Video Descriptions */
 .video-descriptions {
-  margin-top: 30px;        /* 전체 블록과 위 간격 */
-  padding: 0 120px;         /* 좌우 여백 */
+  max-width: 1000px;
+  margin: 60px auto 0;
+  font-size: 16px;
+  text-align: left;
+  line-height: 1.8;
+  padding: 0 20px;
 }
 
 .video-descriptions p {
-  margin: 30px 0;          /* 위아래 간격 늘리기 */
-  line-height: 1;        /* 줄 간격 조정 */
-  text-align: left;        /* 전체 단락 왼쪽 정렬 */
+  margin-bottom: 30px;
 }
 
 .video-descriptions strong {
-  display: block;          /* strong 태그를 한 줄 전체로 */
-  margin-bottom: 2px;      /* strong 아래 간격 */
-  text-align: left;        /* 굵은 제목 왼쪽 정렬 */
+  display: block;
+  margin-bottom: 5px;
 }
 
+/* City / Style Selector */
 .selector {
   padding: 40px 20px;
   text-align: center;
@@ -93,6 +123,7 @@ select {
   margin-right: 20px;
 }
 
+/* Video container under dropdown (full width) */
 .video-container {
   margin-top: 20px;
 }
@@ -101,9 +132,10 @@ select {
   width: 100%;
   max-width: 720px;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
+/* Footer */
 footer {
   text-align: center;
   padding: 40px 20px;
