@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Superimposing Cities</title>
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Import maps -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/",
+      "@mkkellogg/gaussian-splats-3d": "https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.7/build/gaussian-splats-3d.module.js"
+    }
+  }
+  </script>
 </head>
 <body>
 
@@ -17,7 +28,7 @@
 
   <section class="description">
     <p>
-      This project is revisiting Guy Debord’s *Society of the Spectacle* through the lens of artificial intelligence, rethinking urban aesthetics and global contemporary context.
+      This project is revisiting Guy Debord’s <em>Society of the Spectacle</em> through the lens of artificial intelligence, rethinking urban aesthetics and global contemporary context.
     </p>
   </section>
 
@@ -25,7 +36,6 @@
   <section class="video-selected">
     <h2>Video Selected</h2>
 
-    <!-- 드롭다운 메뉴 -->
     <label for="theme-select">Select Concept</label>
     <select id="theme-select">
       <option value="conception">1</option>
@@ -34,13 +44,11 @@
     </select>
 
     <div class="video-display-with-images">
-      <!-- 왼쪽: 이미지 -->
       <div class="side-images">
         <img src="https://wooksungl.github.io/theinternet/images/frame_0007.png" alt="Related Image 1" />
         <img src="https://wooksungl.github.io/theinternet/images/frame_007.png" alt="Related Image 2" />
       </div>
 
-      <!-- 오른쪽: 비디오 -->
       <div class="video-wrapper">
         <video id="theme-video" autoplay muted loop playsinline controls>
           <source src="https://wooksungl.github.io/wooks-portfolio/image/project4/Video1.mp4" type="video/mp4" />
@@ -48,7 +56,6 @@
       </div>
     </div>
 
-    <!-- 고정 텍스트 -->
     <div class="video-descriptions">
       <p><strong>Conception, Aesthetic Structures</strong><br>
       Conception is the initial vision that shapes the aesthetic structures of a city, guiding how urban spaces are perceived and experienced through their visual and sensory elements.</p>
@@ -60,7 +67,6 @@
       Construction, supported by artificial intelligence, allows for the dynamic redesign and reimagination of urban landscapes, enabling cities to evolve and adapt to new cultural and technological influences.</p>
     </div>
   </section>
-
 
   <!-- City/Style Dropdown Selector -->
   <section class="selector">
@@ -87,15 +93,181 @@
     </div>
   </section>
 
+  <!-- ====================== Gaussian Splat Viewer (Footer 위) ====================== -->
+  <section class="splat-section">
+    <h2>3D Splat Viewer</h2>
+    <div class="splat-toolbar">
+      <button id="btnPointPreview" title="스플랫이 안 보이면 포인트 프리뷰로 보기">Try Point Preview</button>
+      <span class="hint">Left drag = rotate • Right drag = pan • Wheel = zoom • R = reset</span>
+    </div>
+    <div id="splat-root"></div>
+    <div id="overlayMsg"></div>
+  </section>
+  <!-- ============================================================================ -->
+
   <!-- Footer -->
   <footer>
     <p>Share your city remix with the world — tag us on Instagram and join the movement.</p>
-    <div class="footer-boxes">
-      <div class="box"></div>
-      <div class="box"></div>
-    </div>
+
   </footer>
 
+  <!-- 기존 비디오 로직 -->
   <script src="script.js"></script>
+
+  <!-- Splat + Fallback(Points) -->
+  <script type="module">
+  import * as THREE from 'three';
+  import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import * as GS from '@mkkellogg/gaussian-splats-3d';
+
+  // ✅ 존재하는 파일로 먼저 테스트 (나중에 바꿔도 됨)
+  const SPLAT_URL = 'https://huggingface.co/datasets/Wooksung/Gaussian/resolve/main/1.ply';
+  const root = document.getElementById('splat-root');
+  const overlayMsg = document.getElementById('overlayMsg');
+  const btnPointPreview = document.getElementById('btnPointPreview');
+
+  // ---------- 1) Gaussian Splat 렌더 시도 ----------
+  const viewer = new GS.Viewer({
+    rootElement: root,
+    sharedMemoryForWorkers: false,
+    gpuAcceleratedSort: true,
+    cameraUp: [0,1,0],
+    initialCameraPosition: [0,1,5],
+    initialCameraLookAt: [0,0,0]
+  });
+
+  let gsStarted = false;
+  try {
+    await viewer.addSplatScene(SPLAT_URL, {
+      progressiveLoad: true,
+      showLoadingUI: true,
+      format: GS.SceneFormat.Ply,
+      minimumAlpha: 0
+    });
+    viewer.start();
+    gsStarted = true;
+    overlayMsg.textContent = '';
+  } catch (err) {
+    console.error('Gaussian Splat load failed:', err);
+    overlayMsg.textContent = 'Splat load failed. Try "Point Preview".';
+  }
+
+  // ---------- 마우스 컨트롤 (좌=회전 / 우=팬 / 휠=줌) ----------
+  if (gsStarted) {
+    const canvas = root.querySelector('canvas');
+    canvas?.addEventListener('contextmenu', e => e.preventDefault());
+
+    let target = new THREE.Vector3(0,0,0);
+    let spherical = new THREE.Spherical(5, Math.PI/3, Math.PI/4);
+    const ROTATE_SPEED = 0.005, PAN_SPEED = 1.0, ZOOM_SCALE = 1.1;
+
+    function updateCamera(){
+      const pos = new THREE.Vector3().setFromSpherical(spherical).add(target);
+      viewer.setCameraOptions?.({ fov: 60, near: 0.0005, far: spherical.radius*100 });
+      viewer.setCameraPose?.({ position:[pos.x,pos.y,pos.z], target:[target.x,target.y,target.z] });
+    }
+    updateCamera();
+
+    let dragging=false, mode='orbit', lastX=0, lastY=0;
+    canvas?.addEventListener('mousedown', (e)=>{
+      dragging = true; lastX=e.clientX; lastY=e.clientY;
+      mode = (e.button===2) ? 'pan' : 'orbit';
+    });
+    window.addEventListener('mouseup', ()=> dragging=false);
+    window.addEventListener('mousemove', (e)=>{
+      if(!dragging) return;
+      const dx=e.clientX-lastX, dy=e.clientY-lastY; lastX=e.clientX; lastY=e.clientY;
+      if(mode==='orbit'){
+        spherical.theta -= dx*ROTATE_SPEED;
+        spherical.phi   -= dy*ROTATE_SPEED;
+        const EPS=1e-3; spherical.phi=Math.max(EPS,Math.min(Math.PI-EPS,spherical.phi));
+        updateCamera();
+      }else{
+        const fov=(60*Math.PI)/180;
+        const h=(canvas?.clientHeight||window.innerHeight);
+        const worldPerPixel=(2*Math.tan(fov/2)*spherical.radius)/h*PAN_SPEED;
+        const camPos=new THREE.Vector3().setFromSpherical(spherical).add(target);
+        const camDir=target.clone().sub(camPos).normalize();
+        const right=new THREE.Vector3().crossVectors(camDir,new THREE.Vector3(0,1,0)).normalize();
+        const up=new THREE.Vector3().crossVectors(right,camDir).normalize();
+        target.add(right.multiplyScalar(-dx*worldPerPixel));
+        target.add(up.multiplyScalar(dy*worldPerPixel));
+        updateCamera();
+      }
+    });
+    canvas?.addEventListener('wheel', (e)=>{
+      e.preventDefault();
+      spherical.radius *= (e.deltaY<0)? (1/1.1) : 1.1;
+      spherical.radius = Math.max(0.001, spherical.radius);
+      updateCamera();
+    }, {passive:false});
+  }
+
+  // ---------- 2) 포인트 프리뷰(폴백) ----------
+  btnPointPreview.addEventListener('click', () => runPointPreview(SPLAT_URL));
+
+  async function runPointPreview(url){
+    const gsCanvas = root.querySelector('canvas');
+    if (gsCanvas) gsCanvas.style.display = 'none';
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(root.clientWidth, root.clientHeight);
+    root.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+    const camera = new THREE.PerspectiveCamera(60, root.clientWidth/root.clientHeight, 0.001, 10000);
+    camera.position.set(0, 0, 5);
+
+    // 그리드/축
+    const grid = new THREE.GridHelper(10, 10, 0x666666, 0x333333);
+    grid.position.y = -1;
+    scene.add(grid);
+    scene.add(new THREE.AxesHelper(1.5));
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    const loader = new PLYLoader();
+    overlayMsg.textContent = 'Loading PLY as points...';
+    loader.load(url, (geom) => {
+      overlayMsg.textContent = '';
+      const hasColor = !!geom.getAttribute('color');
+      const mat = new THREE.PointsMaterial({ size: 0.01, sizeAttenuation: true, vertexColors: hasColor });
+      const points = new THREE.Points(geom, mat);
+      points.frustumCulled = false;
+      scene.add(points);
+
+      geom.computeBoundingSphere();
+      const r = geom.boundingSphere?.radius || 1.0;
+      const c = geom.boundingSphere?.center || new THREE.Vector3();
+      points.position.sub(c);
+      camera.position.set(0, 0, r * 3);
+      controls.target.set(0, 0, 0);
+      controls.update();
+
+      window.addEventListener('keydown', (e)=>{
+        if (e.key === '[') { mat.size *= 0.9; mat.needsUpdate = true; }
+        if (e.key === ']') { mat.size /= 0.9; mat.needsUpdate = true; }
+      });
+    }, undefined, (err) => {
+      console.error('PLY point preview load error:', err);
+      overlayMsg.textContent = 'Point preview failed. Check console.';
+    });
+
+    window.addEventListener('resize', ()=> {
+      renderer.setSize(root.clientWidth, root.clientHeight);
+      camera.aspect = root.clientWidth/root.clientHeight;
+      camera.updateProjectionMatrix();
+    });
+
+    (function animate(){
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    })();
+  }
+</script>
 </body>
 </html>
