@@ -16,10 +16,25 @@
     }
   }
   </script>
+
+  <!-- 최소 보조 스타일 -->
+  <style>
+    .splat-section { position: relative; }
+    #splat-root { position: relative; }
+    #gizmo {
+      position: absolute; left: 12px; bottom: 12px;
+      width: 120px; height: 120px; pointer-events: none; z-index: 5;
+    }
+    #overlayMsg {
+      position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%);
+      color: #fff; font-size: 12px; opacity: .85; z-index: 4; pointer-events: none;
+    }
+    .splat-toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  </style>
 </head>
 <body>
 
-  <!-- Hero Section -->
+  <!-- Hero -->
   <section class="hero">
     <video autoplay muted loop playsinline class="hero-video">
       <source src="https://huggingface.co/datasets/Wooksung/video-and-image/resolve/main/Video_M.mp4" type="video/mp4" />
@@ -27,49 +42,111 @@
   </section>
 
   <section class="description">
-    <p>
-      This project is revisiting Guy Debord’s <em>Society of the Spectacle</em> through the lens of artificial intelligence, rethinking urban aesthetics and global contemporary context.
-    </p>
+    <p>This project is revisiting Guy Debord’s <em>Society of the Spectacle</em> through the lens artificial intelligence a redesign methodology rethinking urban aesthetic contemporary global context</p>
   </section>
 
-  <!-- Video Selected Section -->
+  <!-- Video Selected (유지) -->
   <section class="video-selected">
     <h2>Video Selected</h2>
 
     <label for="theme-select">Select Concept</label>
-    <select id="theme-select">
-      <option value="conception">1</option>
-      <option value="representation">2</option>
-      <option value="construction">3</option>
+    <select id="theme-select" onchange="applyThemeFromSelect(this)">
+      <option value="conception"
+              data-video="https://wooksungl.github.io/wooks-portfolio/image/project4/Video1.mp4"
+              data-img1="https://wooksungl.github.io/theinternet/images/frame_0007.png"
+              data-img2="https://wooksungl.github.io/theinternet/images/frame_007.png"
+              data-desc="Conception, which defines the aesthetic framework of a city and how we emotionally and visually perceive urban space.">
+        Conception
+      </option>
+
+      <option value="representation"
+              data-video="https://wooksungl.github.io/wooks-portfolio/image/project4/Video2.mp4"
+              data-img1="https://huggingface.co/datasets/Wooksung/Gaussian/resolve/main/frame_0073.png"
+              data-img2="https://huggingface.co/datasets/Wooksung/Gaussian/resolve/main/frame_0075.png"
+              data-desc="Representation, which translates those aesthetic ideas into tangible urban imagery-shpaed by media, advertising, and cultural narratives.">
+        Representation
+      </option>
+
+      <option value="construction"
+              data-video="https://wooksungl.github.io/wooks-portfolio/image/project4/Video3.mp4"
+              data-img1="https://huggingface.co/datasets/Wooksung/Gaussian/resolve/main/frame_0080.png"
+              data-img2="https://huggingface.co/datasets/Wooksung/Gaussian/resolve/main/frame_0009.png"
+              data-desc="Construction, where AI becomes a tool to dynamically redesign and superimpose new urban experiences onto existing cities.">
+        Construction
+      </option>
     </select>
 
     <div class="video-display-with-images">
       <div class="side-images">
-        <img src="https://wooksungl.github.io/theinternet/images/frame_0007.png" alt="Related Image 1" />
-        <img src="https://wooksungl.github.io/theinternet/images/frame_007.png" alt="Related Image 2" />
+        <img id="side-img-1"
+            src="https://wooksungl.github.io/theinternet/images/frame_0007.png"
+            alt="Related Image 1"
+            onerror="console.warn('img1 404?', this.src); this.onerror=null; this.src='https://wooksungl.github.io/theinternet/images/frame_0007.png';">
+
+        <img id="side-img-2"
+            src="https://wooksungl.github.io/theinternet/images/frame_007.png"
+            alt="Related Image 2"
+            onerror="console.warn('img2 404?', this.src); this.onerror=null; this.src='https://wooksungl.github.io/theinternet/images/frame_007.png';">
       </div>
 
       <div class="video-wrapper">
-        <video id="theme-video" autoplay muted loop playsinline controls>
-          <source src="https://wooksungl.github.io/wooks-portfolio/image/project4/Video1.mp4" type="video/mp4" />
+        <video id="theme-video" autoplay muted loop playsinline controls preload="auto">
+          <source id="theme-video-source"
+                  src="https://wooksungl.github.io/wooks-portfolio/image/project4/Video1.mp4"
+                  type="video/mp4">
         </video>
       </div>
     </div>
 
-    <div class="video-descriptions">
-      <p><strong>Conception, Aesthetic Structures</strong><br>
-      Conception is the initial vision that shapes the aesthetic structures of a city, guiding how urban spaces are perceived and experienced through their visual and sensory elements.</p>
-
-      <p><strong>Representation, Urban Landscape</strong><br>
-      Representation transforms these aesthetic structures into a tangible urban landscape, where images, media, and societal influences define the way we interact with and understand the city.</p>
-
-      <p><strong>Construction, Artificial Intelligence</strong><br>
-      Construction, supported by artificial intelligence, allows for the dynamic redesign and reimagination of urban landscapes, enabling cities to evolve and adapt to new cultural and technological influences.</p>
+    <!-- ▼ 선택한 컨셉의 제목/설명 표시 영역 -->
+    <div class="theme-text" style="margin-top:12px;">
+      <h3 id="theme-heading" style="margin:0 0 6px 0;">Conception</h3>
+      <p id="theme-paragraph" style="margin:0; line-height:1.6; opacity:.9;">
+        도시를 바라보는 최초의 시선과 개념. 형태·밀도·리듬 같은 미적 구조를 상상으로 먼저 세우는 단계.
+      </p>
     </div>
+
+    <!-- 섹션 안의 작은 핸들러(HTML에 포함) -->
+    <script>
+      function applyThemeFromSelect(sel){
+        const opt   = sel.options[sel.selectedIndex];
+        const video = document.getElementById('theme-video');
+        const srcEl = document.getElementById('theme-video-source');
+        const img1  = document.getElementById('side-img-1');
+        const img2  = document.getElementById('side-img-2');
+        const hEl   = document.getElementById('theme-heading');
+        const pEl   = document.getElementById('theme-paragraph');
+
+        const v  = opt.getAttribute('data-video');
+        const i1 = opt.getAttribute('data-img1');
+        const i2 = opt.getAttribute('data-img2');
+        const d  = opt.getAttribute('data-desc');
+
+        if (v && srcEl) {
+          video.pause();
+          srcEl.src = v;
+          video.load();
+          video.play().catch(()=>{});
+        }
+        if (i1) img1.src = i1;
+        if (i2) img2.src = i2;
+
+        // 제목은 옵션의 라벨, 설명은 data-desc
+        if (hEl) hEl.textContent = opt.textContent.trim();
+        if (pEl && d) pEl.textContent = d;
+      }
+
+      // 로드 시 현재 선택된 값으로 동기화
+      (function(){
+        const sel = document.getElementById('theme-select');
+        if (sel) applyThemeFromSelect(sel);
+      })();
+    </script>
   </section>
 
-  <!-- City/Style Dropdown Selector -->
-  <section class="selector">
+
+  <!-- City/Style Dropdown Selector (복구) -->
+  <section class="selector" id="city-style">
     <div class="dropdowns">
       <label for="city-select">City Selected</label>
       <select id="city-select">
@@ -97,177 +174,335 @@
   <section class="splat-section">
     <h2>3D Splat Viewer</h2>
     <div class="splat-toolbar">
+      <!-- ▼ 여러 모델 선택 -->
+      <label for="splat-select">Model</label>
+      <select id="splat-select">
+        <option value="scene1">Seoul</option>
+        <option value="scene2">Tokyo</option>
+        <option value="scene3">Europe</option>
+      </select>
+
       <button id="btnPointPreview" title="스플랫이 안 보이면 포인트 프리뷰로 보기">Try Point Preview</button>
-      <span class="hint">Left drag = rotate • Right drag = pan • Wheel = zoom • R = reset</span>
+      <span class="hint">Left drag = rotate • Right drag = pan • Wheel = zoom • R = reset • F = 180° flip</span>
     </div>
+
     <div id="splat-root"></div>
+    <canvas id="gizmo" width="120" height="120"></canvas>
     <div id="overlayMsg"></div>
   </section>
   <!-- ============================================================================ -->
 
-  <!-- Footer -->
   <footer>
     <p>Share your city remix with the world — tag us on Instagram and join the movement.</p>
-
   </footer>
 
-  <!-- 기존 비디오 로직 -->
-  <script src="script.js"></script>
-
-  <!-- Splat + Fallback(Points) -->
   <script type="module">
   import * as THREE from 'three';
   import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   import * as GS from '@mkkellogg/gaussian-splats-3d';
 
-  // ✅ 존재하는 파일로 먼저 테스트 (나중에 바꿔도 됨)
-  const SPLAT_URL = 'https://huggingface.co/datasets/Wooksung/Gaussian/resolve/main/1.ply';
-  const root = document.getElementById('splat-root');
-  const overlayMsg = document.getElementById('overlayMsg');
-  const btnPointPreview = document.getElementById('btnPointPreview');
-
-  // ---------- 1) Gaussian Splat 렌더 시도 ----------
-  const viewer = new GS.Viewer({
-    rootElement: root,
-    sharedMemoryForWorkers: false,
-    gpuAcceleratedSort: true,
-    cameraUp: [0,1,0],
-    initialCameraPosition: [0,1,5],
-    initialCameraLookAt: [0,0,0]
+  /* -----------------------------
+   *  Video Selected 로직 (유지)
+   * ----------------------------- */
+  const themeSelect = document.getElementById('theme-select');
+  const themeVideo  = document.getElementById('theme-video');
+  const themeSources = {
+    conception: "https://wooksungl.github.io/wooks-portfolio/image/project4/Video1.mp4",
+    representation: "https://wooksungl.github.io/wooks-portfolio/image/project4/Video2.mp4",
+    construction: "https://wooksungl.github.io/wooks-portfolio/image/project4/Video3.mp4"
+  };
+  themeSelect?.addEventListener('change', () => {
+    const selected = themeSelect.value;
+    themeVideo.querySelector('source').src = themeSources[selected];
+    themeVideo.load();
+    themeVideo.play().catch(()=>{});
   });
 
-  let gsStarted = false;
-  try {
-    await viewer.addSplatScene(SPLAT_URL, {
-      progressiveLoad: true,
-      showLoadingUI: true,
-      format: GS.SceneFormat.Ply,
-      minimumAlpha: 0
-    });
-    viewer.start();
-    gsStarted = true;
-    overlayMsg.textContent = '';
-  } catch (err) {
-    console.error('Gaussian Splat load failed:', err);
-    overlayMsg.textContent = 'Splat load failed. Try "Point Preview".';
+  /* ---------------------------------
+   *  선택 가능한 스플랫/PLY 파일들
+   *  (.ksplat도 그대로 넣어도 됩니다)
+   * --------------------------------- */
+  const FILES = {
+    scene1: 'https://huggingface.co/datasets/Wooksung/Gaussian/resolve/main/Seoul.ply',
+    scene2: 'https://huggingface.co/datasets/Wooksung/Gaussian/resolve/main/Tokyo.ply',
+    scene3: 'https://huggingface.co/datasets/Wooksung/Gaussian/resolve/main/Europe.ply'
+  };
+
+  const splatSelect   = document.getElementById('splat-select');
+  const root          = document.getElementById('splat-root');
+  const gizmoCanvas   = document.getElementById('gizmo');
+  const overlayMsg    = document.getElementById('overlayMsg');
+  const btnPointPrev  = document.getElementById('btnPointPreview');
+
+  // 현재 모드: 'gs' 또는 'points'
+  let mode = 'gs';
+
+  // ===== GS(스플랫) 뷰어 상태 =====
+  let gsViewer = null, gsSceneId = null;
+  let spherical, target;
+
+  // 짐벌
+  let gizmoRenderer, gizmoScene, gizmoCam, gizmoAxes, gizmoTmp;
+
+  // ===== 포인트 프리뷰 상태 =====
+  let ppRenderer = null, ppScene = null, ppCamera = null, ppControls = null, ppPoints = null, ppMat = null, ppGrid = null, ppAxes = null;
+
+  /* 공용 */
+  function clearRootCanvas() {
+    [...root.querySelectorAll('canvas')].forEach(c => c.remove());
   }
 
-  // ---------- 마우스 컨트롤 (좌=회전 / 우=팬 / 휠=줌) ----------
-  if (gsStarted) {
-    const canvas = root.querySelector('canvas');
-    canvas?.addEventListener('contextmenu', e => e.preventDefault());
+  /* -------------------
+   *  GS 모드 부팅/제어
+   * ------------------- */
+  async function bootGS(url){
+    mode = 'gs';
+    overlayMsg.textContent = '';
 
-    let target = new THREE.Vector3(0,0,0);
-    let spherical = new THREE.Spherical(5, Math.PI/3, Math.PI/4);
-    const ROTATE_SPEED = 0.005, PAN_SPEED = 1.0, ZOOM_SCALE = 1.1;
+    // 포인트 프리뷰가 켜져 있으면 정리
+    if (ppRenderer) {
+      ppRenderer.dispose();
+      ppRenderer = null; ppScene = null; ppCamera = null; ppControls = null; ppPoints=null; ppMat=null; ppGrid=null; ppAxes=null;
+      clearRootCanvas();
+    }
+
+    gizmoCanvas.style.display = '';
+
+    // viewer 새로 생성 (가장 안전)
+    clearRootCanvas();
+    gsViewer = new GS.Viewer({
+      rootElement: root,
+      sharedMemoryForWorkers: false,
+      gpuAcceleratedSort: true,
+      cameraUp: [0,0,1],
+      initialCameraPosition: [0,2,6],
+      initialCameraLookAt: [0,0,0]
+    });
+
+    try{
+      gsSceneId = await gsViewer.addSplatScene(url, {
+        progressiveLoad: true,
+        showLoadingUI: true,
+        // .ksplat이면 format 생략
+        format: GS.SceneFormat.Ply,
+        minimumAlpha: 0
+      });
+      gsViewer.start();
+    }catch(err){
+      console.error('Gaussian Splat load failed:', err);
+      overlayMsg.textContent = 'Splat load failed. Try "Point Preview".';
+      return;
+    }
+
+    // AABB 기준 프레이밍
+    fitGS();
+
+    // 수동 카메라 컨트롤 + 짐벌
+    wireGSControls();
+  }
+
+  function fitGS(){
+    try{
+      const aabb = gsViewer.getSceneAABB?.(gsSceneId) || gsViewer.getSceneAABB?.();
+      if(!aabb) return;
+      const c = [
+        (aabb.min[0]+aabb.max[0])*0.5,
+        (aabb.min[1]+aabb.max[1])*0.5,
+        (aabb.min[2]+aabb.max[2])*0.5
+      ];
+      const size = [
+        aabb.max[0]-aabb.min[0],
+        aabb.max[1]-aabb.min[1],
+        aabb.max[2]-aabb.min[2]
+      ];
+      const radius = Math.max(size[0], size[1], size[2]) * 0.5 || 1.0;
+      const dist = radius * 2.5;
+      gsViewer.setCameraOptions?.({ fov: 60, near: 0.0005, far: radius*20 });
+      gsViewer.setCameraPose?.({ position:[c[0]+dist, c[1]+dist*0.3, c[2]+dist], target:c });
+
+      spherical = new THREE.Spherical(dist, Math.PI/2.3, Math.PI/4);
+      target = new THREE.Vector3(c[0], c[1], c[2]);
+      renderGizmoFromPosTarget(
+        new THREE.Vector3(c[0]+dist, c[1]+dist*0.3, c[2]+dist),
+        new THREE.Vector3().fromArray(c)
+      );
+    }catch{}
+  }
+
+  function wireGSControls(){
+    const canvas = root.querySelector('canvas');
+    if(!canvas) return;
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 짐벌
+    gizmoRenderer = new THREE.WebGLRenderer({ canvas: gizmoCanvas, alpha: true, antialias: true });
+    gizmoScene = new THREE.Scene();
+    gizmoCam = new THREE.PerspectiveCamera(50, 1, 0.01, 10);
+    gizmoCam.position.set(0,0,3);
+    gizmoAxes = new THREE.AxesHelper(1.2);
+    gizmoScene.add(gizmoAxes);
+    gizmoTmp = new THREE.Object3D();
+
+    if(!spherical) spherical = new THREE.Spherical(6, Math.PI/2.3, Math.PI/4);
+    if(!target) target = new THREE.Vector3(0,0,0);
 
     function updateCamera(){
       const pos = new THREE.Vector3().setFromSpherical(spherical).add(target);
-      viewer.setCameraOptions?.({ fov: 60, near: 0.0005, far: spherical.radius*100 });
-      viewer.setCameraPose?.({ position:[pos.x,pos.y,pos.z], target:[target.x,target.y,target.z] });
+      gsViewer.setCameraOptions?.({ fov: 60, near: 0.0005, far: spherical.radius*100 });
+      gsViewer.setCameraPose?.({ position:[pos.x,pos.y,pos.z], target:[target.x,target.y,target.z] });
+      renderGizmoFromPosTarget(pos, target);
     }
     updateCamera();
 
-    let dragging=false, mode='orbit', lastX=0, lastY=0;
-    canvas?.addEventListener('mousedown', (e)=>{
-      dragging = true; lastX=e.clientX; lastY=e.clientY;
-      mode = (e.button===2) ? 'pan' : 'orbit';
-    });
+    let dragging=false, modeLocal='orbit', lastX=0, lastY=0;
+    canvas.addEventListener('mousedown', (e)=>{ dragging=true; lastX=e.clientX; lastY=e.clientY; modeLocal=(e.button===2)?'pan':'orbit'; });
     window.addEventListener('mouseup', ()=> dragging=false);
     window.addEventListener('mousemove', (e)=>{
       if(!dragging) return;
       const dx=e.clientX-lastX, dy=e.clientY-lastY; lastX=e.clientX; lastY=e.clientY;
-      if(mode==='orbit'){
-        spherical.theta -= dx*ROTATE_SPEED;
-        spherical.phi   -= dy*ROTATE_SPEED;
+      if(modeLocal==='orbit'){
+        spherical.theta -= dx*0.005;
+        spherical.phi   -= dy*0.005;
         const EPS=1e-3; spherical.phi=Math.max(EPS,Math.min(Math.PI-EPS,spherical.phi));
         updateCamera();
       }else{
         const fov=(60*Math.PI)/180;
-        const h=(canvas?.clientHeight||window.innerHeight);
-        const worldPerPixel=(2*Math.tan(fov/2)*spherical.radius)/h*PAN_SPEED;
+        const h=(canvas.clientHeight||window.innerHeight);
+        const worldPerPixel=(2*Math.tan(fov/2)*spherical.radius)/h;
         const camPos=new THREE.Vector3().setFromSpherical(spherical).add(target);
         const camDir=target.clone().sub(camPos).normalize();
-        const right=new THREE.Vector3().crossVectors(camDir,new THREE.Vector3(0,1,0)).normalize();
+        const right=new THREE.Vector3().crossVectors(camDir,new THREE.Vector3(0,0,1)).normalize();
         const up=new THREE.Vector3().crossVectors(right,camDir).normalize();
         target.add(right.multiplyScalar(-dx*worldPerPixel));
         target.add(up.multiplyScalar(dy*worldPerPixel));
         updateCamera();
       }
     });
-    canvas?.addEventListener('wheel', (e)=>{
-      e.preventDefault();
-      spherical.radius *= (e.deltaY<0)? (1/1.1) : 1.1;
-      spherical.radius = Math.max(0.001, spherical.radius);
-      updateCamera();
-    }, {passive:false});
+    canvas.addEventListener('wheel', (e)=>{ e.preventDefault(); spherical.radius *= (e.deltaY<0)?(1/1.1):1.1; spherical.radius=Math.max(0.001,spherical.radius); updateCamera(); }, {passive:false});
+
+    window.addEventListener('keydown', (e)=>{
+      if(mode!=='gs') return;
+      if(e.key.toLowerCase()==='r') fitGS();
+      if(e.key.toLowerCase()==='f'){ spherical.theta += Math.PI; updateCamera(); }
+    });
   }
 
-  // ---------- 2) 포인트 프리뷰(폴백) ----------
-  btnPointPreview.addEventListener('click', () => runPointPreview(SPLAT_URL));
+  function renderGizmoFromPosTarget(pos, tgt){
+    if(!gizmoAxes) return;
+    gizmoTmp.position.copy(pos);
+    gizmoTmp.lookAt(tgt);
+    gizmoAxes.quaternion.copy(gizmoTmp.quaternion);
+    gizmoRenderer.render(gizmoScene, gizmoCam);
+  }
 
-  async function runPointPreview(url){
-    const gsCanvas = root.querySelector('canvas');
-    if (gsCanvas) gsCanvas.style.display = 'none';
+  /* --------------------
+   *  포인트 프리뷰 모드
+   * -------------------- */
+  function bootPoints(url){
+    mode='points';
+    gizmoCanvas.style.display='none';
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(root.clientWidth, root.clientHeight);
-    root.appendChild(renderer.domElement);
+    // GS 비우기
+    clearRootCanvas();
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
-    const camera = new THREE.PerspectiveCamera(60, root.clientWidth/root.clientHeight, 0.001, 10000);
-    camera.position.set(0, 0, 5);
+    ppRenderer = new THREE.WebGLRenderer({ antialias:true });
+    ppRenderer.setSize(root.clientWidth, root.clientHeight);
+    root.appendChild(ppRenderer.domElement);
 
-    // 그리드/축
-    const grid = new THREE.GridHelper(10, 10, 0x666666, 0x333333);
-    grid.position.y = -1;
-    scene.add(grid);
-    scene.add(new THREE.AxesHelper(1.5));
+    ppScene = new THREE.Scene();
+    ppScene.background = new THREE.Color(0x000000);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
+    ppCamera = new THREE.PerspectiveCamera(60, root.clientWidth/root.clientHeight, 0.001, 1e6);
+    ppControls = new OrbitControls(ppCamera, ppRenderer.domElement);
+    ppControls.enableDamping = true;
 
-    const loader = new PLYLoader();
-    overlayMsg.textContent = 'Loading PLY as points...';
-    loader.load(url, (geom) => {
-      overlayMsg.textContent = '';
-      const hasColor = !!geom.getAttribute('color');
-      const mat = new THREE.PointsMaterial({ size: 0.01, sizeAttenuation: true, vertexColors: hasColor });
-      const points = new THREE.Points(geom, mat);
-      points.frustumCulled = false;
-      scene.add(points);
+    // 첫 로드
+    loadPLY(url);
 
-      geom.computeBoundingSphere();
-      const r = geom.boundingSphere?.radius || 1.0;
-      const c = geom.boundingSphere?.center || new THREE.Vector3();
-      points.position.sub(c);
-      camera.position.set(0, 0, r * 3);
-      controls.target.set(0, 0, 0);
-      controls.update();
-
-      window.addEventListener('keydown', (e)=>{
-        if (e.key === '[') { mat.size *= 0.9; mat.needsUpdate = true; }
-        if (e.key === ']') { mat.size /= 0.9; mat.needsUpdate = true; }
-      });
-    }, undefined, (err) => {
-      console.error('PLY point preview load error:', err);
-      overlayMsg.textContent = 'Point preview failed. Check console.';
+    window.addEventListener('resize', ()=>{
+      if(!ppRenderer) return;
+      ppRenderer.setSize(root.clientWidth, root.clientHeight);
+      ppCamera.aspect = root.clientWidth/root.clientHeight;
+      ppCamera.updateProjectionMatrix();
     });
 
-    window.addEventListener('resize', ()=> {
-      renderer.setSize(root.clientWidth, root.clientHeight);
-      camera.aspect = root.clientWidth/root.clientHeight;
-      camera.updateProjectionMatrix();
-    });
-
-    (function animate(){
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
+    (function loop(){
+      if(!ppRenderer) return;
+      requestAnimationFrame(loop);
+      ppControls.update();
+      ppRenderer.render(ppScene, ppCamera);
     })();
   }
-</script>
+
+  function loadPLY(url){
+    overlayMsg.textContent='Loading PLY as points...';
+    const loader = new PLYLoader();
+    loader.load(url, (geom)=>{
+      overlayMsg.textContent='';
+
+      // 이전 포인트/그리드 제거
+      if(ppPoints){ ppScene.remove(ppPoints); ppPoints.geometry.dispose(); ppMat.dispose(); ppPoints=null; ppMat=null; }
+      if(ppGrid){ ppScene.remove(ppGrid); ppGrid=null; }
+      if(ppAxes){ ppScene.remove(ppAxes); ppAxes=null; }
+
+      const hasColor = !!geom.getAttribute('color');
+      ppMat = new THREE.PointsMaterial({ size: 0.01, sizeAttenuation: true, vertexColors: hasColor });
+      ppPoints = new THREE.Points(geom, ppMat);
+      ppPoints.frustumCulled = false;
+
+      geom.computeBoundingBox(); geom.computeBoundingSphere();
+      const bb = geom.boundingBox;
+      const center = bb ? bb.getCenter(new THREE.Vector3()) : (geom.boundingSphere?.center.clone() ?? new THREE.Vector3());
+      const radius = Math.max(geom.boundingSphere?.radius ?? 1, 1e-6);
+
+      // 원점으로 이동(크기 그대로)
+      ppPoints.position.sub(center);
+
+      // 필요하면 뒤집기(F로 토글)
+      ppPoints.rotation.x = Math.PI;
+
+      ppScene.add(ppPoints);
+
+      // 모델 스케일에 맞춘 그리드/축
+      const gridSize = radius*2, gridDivs = 20;
+      ppGrid = new THREE.GridHelper(gridSize, gridDivs, 0x666666, 0x333333);
+      ppScene.add(ppGrid);
+      ppAxes = new THREE.AxesHelper(radius*0.5);
+      ppScene.add(ppAxes);
+
+      // 프레이밍
+      ppCamera.position.set(0, radius*0.6, radius*2.5);
+      ppControls.target.set(0,0,0);
+      ppControls.update();
+
+      // 단축키
+      const onKey = (e)=>{
+        if(mode!=='points') return;
+        if(e.key==='['){ ppMat.size*=0.9; ppMat.needsUpdate=true; }
+        if(e.key===']'){ ppMat.size/=0.9; ppMat.needsUpdate=true; }
+        if(e.key.toLowerCase()==='r'){ ppCamera.position.set(0, radius*0.6, radius*2.5); ppControls.target.set(0,0,0); ppControls.update(); }
+        if(e.key.toLowerCase()==='f'){ ppPoints.rotation.x += Math.PI; }
+      };
+      window.onkeydown = onKey; // 간단히 한 번만 바인딩
+    }, undefined, (err)=>{
+      console.error('PLY point preview load error', err);
+      overlayMsg.textContent='Point preview failed. Check console.';
+    });
+  }
+
+  /* ----------------
+   *  UI 바인딩
+   * ---------------- */
+  btnPointPrev.addEventListener('click', ()=> bootPoints(FILES[splatSelect.value]));
+  splatSelect.addEventListener('change', ()=>{
+    const url = FILES[splatSelect.value];
+    if(mode==='gs') bootGS(url);
+    else if(mode==='points') loadPLY(url);
+  });
+
+  // 초기: GS 모드 + 현재 선택 파일
+  bootGS(FILES[splatSelect.value]);
+  </script>
 </body>
 </html>
