@@ -144,30 +144,92 @@
     </script>
   </section>
 
-
-  <!-- City/Style Dropdown Selector (복구) -->
+  <!-- City/Style Dropdown Selector -->
   <section class="selector" id="city-style">
     <div class="dropdowns">
       <label for="city-select">City Selected</label>
-      <select id="city-select">
+      <select id="city-select" onchange="updateCityStyleVideoHTML()">
         <option value="seoul">Seoul</option>
         <option value="tokyo">Tokyo</option>
-        <option value="london">London</option>
-        <option value="paris">Paris</option>
+        <option value="europe">Europe</option>
       </select>
 
       <label for="style-select">Style Selected</label>
-      <select id="style-select">
+      <select id="style-select" onchange="updateCityStyleVideoHTML()">
         <option value="1">Version 1</option>
         <option value="2">Version 2</option>
         <option value="3">Version 3</option>
-        <option value="4">Version 4</option>
       </select>
     </div>
 
-    <div class="video-container">
-      <video id="city-style-video" controls autoplay muted loop></video>
+    <!-- ▶▶ 두 영상 나란히 -->
+    <div class="video-container city-videos">
+      <video id="city-video-a" controls autoplay muted loop playsinline></video>
+      <video id="city-video-b" controls autoplay muted loop playsinline></video>
     </div>
+
+    <!-- 섹션 안의 아주 작은 핸들러(HTML에 포함) -->
+    <script>
+      const HF = 'https://huggingface.co/datasets/Wooksung/Gaussian/resolve/main/';
+      // 각 조합에 대해 [왼쪽영상, 오른쪽영상] 지정
+      const cityStyleMap = {
+        seoul: {
+          '1': [HF + 'Seoul_01.mp4',  HF + 'Seoul_1.mp4'],
+          '2': [HF + 'Seoul_02.mp4',  HF + 'Seoul_2.mp4'],
+          '3': [HF + 'Seoul_03.mp4',  HF + 'Seoul_3.mp4'],
+        },
+        tokyo: {
+          '1': [HF + 'Japan_01.mp4',  HF + 'Japan_1.mp4'],
+          '2': [HF + 'Japan_02.mp4',  HF + 'Japan_2.mp4'],
+          '3': [HF + 'Japan_03.mp4',  HF + 'Japan_3.mp4'],
+        },
+        europe: {
+          '1': [HF + 'Europe_01.mp4',  HF + 'Europe_1.mp4'],
+          '2': [HF + 'Europe_02.mp4',  HF + 'Europe_2.mp4'],
+          '3': [HF + 'Europe_03.mp4',  HF + 'Europe_3.mp4'],
+        }
+      };
+
+      function setVid(el, url){
+        if(!el) return;
+        if(url){
+          el.style.display = '';
+          try { el.pause(); } catch {}
+          el.src = url;          // <source> 없이 video.src 직접 설정
+          el.load();
+          el.play().catch(()=>{});
+        }else{
+          try { el.pause(); } catch {}
+          el.removeAttribute('src');
+          el.load();
+          el.style.display = 'none';
+        }
+      }
+
+      function updateCityStyleVideoHTML(){
+        const city  = document.getElementById('city-select').value;
+        const style = document.getElementById('style-select').value;
+        const a = document.getElementById('city-video-a');
+        const b = document.getElementById('city-video-b');
+
+        const pair = cityStyleMap[city]?.[style];
+
+        if(Array.isArray(pair)){
+          setVid(a, pair[0] || null);
+          setVid(b, pair[1] || null);
+        }else if(typeof pair === 'string'){
+          setVid(a, pair);
+          setVid(b, null);
+        }else{
+          // 매핑 없으면 둘 다 숨김
+          setVid(a, null);
+          setVid(b, null);
+        }
+      }
+
+      // 최초 1회 동기화
+      (function(){ updateCityStyleVideoHTML(); })();
+    </script>
   </section>
 
   <!-- ====================== Gaussian Splat Viewer (Footer 위) ====================== -->
